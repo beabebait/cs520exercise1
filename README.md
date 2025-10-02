@@ -1,1 +1,1 @@
-# cs520exercise1
+# Code Generation Exercise 1
