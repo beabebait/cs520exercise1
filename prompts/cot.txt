@@ -1,0 +1,6 @@
+You are an expert programmer. Solve the following problem step by step, explaining your reasoning before you write the final Python code.
+
+Problem:
+{{problem_text}}
+
+Return only valid Python code implementing the final solution.
