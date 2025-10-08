@@ -1,0 +1,7 @@
+You are an expert programmer. Write Python code to solve the following problem. 
+After writing your first attempt, reason about potential issues, and correct them if needed before presenting the final version.
+
+Problem:
+{{problem_text}}
+
+Return only valid Python code implementing the corrected solution.
