@@ -1,0 +1,5 @@
+Model_Strategy,pass@10 (%),Example Failures
+gpt_cot,0.0,"problem_1, problem_10"
+gpt_selfdebug,0.0,"problem_1, problem_10"
+qwen_cot,0.0,"problem_1, problem_10"
+qwen_selfdebug,20.0,"problem_10, problem_2"
