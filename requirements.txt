@@ -1,4 +1,4 @@
-openai
-anthropic
-datasets
-tqdm
+# Core dependencies
+openai>=1.40.0
+google-generativeai>=0.5.4
+tqdm>=4.66.0

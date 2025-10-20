@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from openai import OpenAI
-from google import genai  # Google GenAI SDK for Gemini
+import google.generativeai as genai
 
 # -----------------------------
 # Configuration
