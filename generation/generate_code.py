@@ -1,70 +1,90 @@
 import os
+from pathlib import Path
 from openai import OpenAI
-import anthropic
-from datasets import load_dataset
+from google import genai  # Google GenAI SDK for Gemini
 
-# Initialize clients
-openai_client = OpenAI(api_key="YOUR_OPENAI_KEY")
-anthropic_client = anthropic.Anthropic(api_key="YOUR_ANTHROPIC_KEY")
+# -----------------------------
+# Configuration
+# -----------------------------
+NUM_PROBLEMS = 10
+PROMPTS_DIR = Path("../data/exported_prompts")
+OUTPUT_DIR  = Path("../generated_code")
 
-# Define models (different families)
-LLM1 = "gpt-4-turbo"
-LLM2 = "claude-3-opus-20240229"
+# LLM Clients
+openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
-# Load prompt templates
-def read_prompt(path):
-    with open(path, 'r') as f:
+# For Gemini: uses Google Cloud credentials / API key via environment
+genai_client = genai.Client()
+
+# Models
+LLM1_NAME = "gpt-4"
+LLM2_NAME = "gemini-2.5-flash"  # You can pick the version you have access to
+
+# Prompt templates
+COT_TEMPLATE       = Path("../prompts/cot_prompt.txt").read_text()
+SELFDEBUG_TEMPLATE = Path("../prompts/selfdebug_prompt.txt").read_text()
+
+# -----------------------------
+# Helper Functions
+# -----------------------------
+def read_prompt_file(problem_path: Path):
+    with open(problem_path, "r") as f:
         return f.read()
 
-cot_template = read_prompt("prompts/cot_prompt.txt")
-sdebug_template = read_prompt("prompts/self_debug_prompt.txt")
-
-# Load dataset
-dataset = load_dataset("openai_humaneval")["test"]
-
-# Helper functions
-def save_output(problem_id, model_name, strategy, code):
-    os.makedirs("generation/generated_code", exist_ok=True)
-    filename = f"generation/generated_code/{problem_id}_{model_name}_{strategy}.py"
-    with open(filename, "w") as f:
+def save_generated_code(problem_id, model_name, strategy, code):
+    folder = OUTPUT_DIR / f"{model_name}_{strategy}"
+    folder.mkdir(parents=True, exist_ok=True)
+    file_path = folder / f"problem_{problem_id}.py"
+    with open(file_path, "w") as f:
         f.write(code)
-    print(f"✅ Saved {filename}")
+    print(f"✅ Saved: {file_path}")
 
 def query_openai(prompt):
     response = openai_client.chat.completions.create(
-        model=LLM1,
+        model=LLM1_NAME,
         messages=[{"role": "user", "content": prompt}],
         temperature=0.7
     )
     return response.choices[0].message.content.strip()
 
-def query_claude(prompt):
-    response = anthropic_client.messages.create(
-        model=LLM2,
-        max_tokens=1500,
-        messages=[{"role": "user", "content": prompt}]
+def query_gemini(prompt):
+    response = genai_client.models.generate_content(
+        model=LLM2_NAME,
+        contents=prompt
     )
-    return response.content[0].text.strip()
+    return response.text.strip()
 
-# Generate for the first 10 problems
-for i, sample in enumerate(dataset[:10]):
-    problem_id = f"problem{i+1}"
-    problem_text = sample["prompt"]
+# -----------------------------
+# Main Generation Loop
+# -----------------------------
+def main():
+    prompt_files = sorted(list(PROMPTS_DIR.glob("problem_*.txt")))[:NUM_PROBLEMS]
+    for i, prompt_file in enumerate(prompt_files, start=1):
+        problem_text = read_prompt_file(prompt_file)
+        print(f"\n=== Problem {i} ===")
 
-    # Build prompts
-    cot_prompt = cot_template.replace("{{problem_text}}", problem_text)
-    sdebug_prompt = sdebug_template.replace("{{problem_text}}", problem_text)
+        cot_prompt      = COT_TEMPLATE.replace("{{problem_text}}", problem_text)
+        sdebug_prompt   = SELFDEBUG_TEMPLATE.replace("{{problem_text}}", problem_text)
 
-    # GPT
-    gpt_cot = query_openai(cot_prompt)
-    save_output(problem_id, "GPT", "CoT", gpt_cot)
+        # OpenAI GPT-4
+        print("Generating GPT-4 CoT …")
+        code = query_openai(cot_prompt)
+        save_generated_code(i, "GPT4", "CoT", code)
 
-    gpt_sdebug = query_openai(sdebug_prompt)
-    save_output(problem_id, "GPT", "SelfDebug", gpt_sdebug)
+        print("Generating GPT-4 SelfDebug …")
+        code = query_openai(sdebug_prompt)
+        save_generated_code(i, "GPT4", "SelfDebug", code)
 
-    # Claude
-    claude_cot = query_claude(cot_prompt)
-    save_output(problem_id, "Claude", "CoT", claude_cot)
+        # Google Gemini
+        print("Generating Gemini CoT …")
+        code = query_gemini(cot_prompt)
+        save_generated_code(i, "Gemini", "CoT", code)
 
-    claude_sdebug = query_claude(sdebug_prompt)
-    save_output(problem_id, "Claude", "SelfDebug", claude_sdebug)
+        print("Generating Gemini SelfDebug …")
+        code = query_gemini(sdebug_prompt)
+        save_generated_code(i, "Gemini", "SelfDebug", code)
+
+    print("\n Code generation complete!")
+
+if __name__ == "__main__":
+    main()
