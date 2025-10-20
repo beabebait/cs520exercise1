@@ -4,23 +4,16 @@ from pathlib import Path
 from tqdm import tqdm
 
 # === Import LLM SDKs ===
-from openai import OpenAI                # GPT
-import google.generativeai as genai      # Gemini
+from openai import OpenAI                  # GPT
+from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
 
 # === Configure API keys ===
 openai_key = os.getenv("OPENAI_API_KEY")
-gemini_key = os.getenv("GEMINI_API_KEY")
-
 if not openai_key:
-    raise ValueError(" Missing OPENAI_API_KEY. Run: export OPENAI_API_KEY='your_key'")
-if not gemini_key:
-    raise ValueError(" Missing GEMINI_API_KEY. Run: export GEMINI_API_KEY='your_key'")
+    raise ValueError("❌ Missing OPENAI_API_KEY. Run: export OPENAI_API_KEY='your_key'")
 
-# OpenAI client
 openai_client = OpenAI(api_key=openai_key)
-
-# Gemini configuration
-genai.configure(api_key=gemini_key)
 
 # === I/O paths ===
 EXPORT_FOLDER = Path("data/exported_prompts")
@@ -47,7 +40,18 @@ def load_prompts_from_txt(folder_path=EXPORT_FOLDER):
 
 problems = load_prompts_from_txt()
 
-# === Helper functions ===
+# === Load Vicuna model ===
+vicuna_model_name = "TheBloke/vicuna-7B-1.1-HF"
+print(f"Loading Vicuna model: {vicuna_model_name} (this may take a few minutes)...")
+tokenizer = AutoTokenizer.from_pretrained(vicuna_model_name)
+model = AutoModelForCausalLM.from_pretrained(vicuna_model_name, device_map="auto", torch_dtype=torch.float16)
+
+def call_vicuna(prompt):
+    inputs = tokenizer(prompt, return_tensors="pt").to("cuda" if torch.cuda.is_available() else "cpu")
+    outputs = model.generate(**inputs, max_new_tokens=400)
+    return tokenizer.decode(outputs[0], skip_special_tokens=True)
+
+# === GPT helper ===
 def call_gpt(prompt, cot=True):
     instruction = "Solve step-by-step before writing the final code." if cot else "Generate only the final code."
     response = openai_client.chat.completions.create(
@@ -61,13 +65,6 @@ def call_gpt(prompt, cot=True):
     return response.choices[0].message.content.strip()
 
 
-def call_gemini(prompt, cot=True):
-    instruction = "Think step-by-step before writing the final code." if cot else "Generate only the final code."
-    model = genai.GenerativeModel("gemini-1.5-flash")
-    response = model.generate_content(f"{prompt}\n\n{instruction}")
-    return response.text.strip()
-
-
 # === Main generation loop ===
 def generate_all():
     results = []
@@ -79,17 +76,17 @@ def generate_all():
         gpt_cot = call_gpt(prompt, cot=True)
         gpt_selfdebug = call_gpt(prompt, cot=False)
 
-        # --- Gemini outputs ---
-        gemini_cot = call_gemini(prompt, cot=True)
-        gemini_selfdebug = call_gemini(prompt, cot=False)
+        # --- Vicuna outputs ---
+        vicuna_cot = call_vicuna(f"Step-by-step solution then final Python code:\n{prompt}")
+        vicuna_selfdebug = call_vicuna(f"Final Python code only:\n{prompt}")
 
         # --- Save results per problem ---
         entry = {
             "task_id": task_id,
             "gpt_cot": gpt_cot,
             "gpt_selfdebug": gpt_selfdebug,
-            "gemini_cot": gemini_cot,
-            "gemini_selfdebug": gemini_selfdebug,
+            "vicuna_cot": vicuna_cot,
+            "vicuna_selfdebug": vicuna_selfdebug,
         }
 
         results.append(entry)
@@ -102,7 +99,7 @@ def generate_all():
     with open(DATA_DIR / "all_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
-    print("Code generation complete! All files saved in data/generated/")
+    print("✅ Code generation complete! All files saved in data/generated/")
 
 
 if __name__ == "__main__":
