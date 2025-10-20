@@ -1,90 +1,99 @@
 import os
+import json
 from pathlib import Path
-from openai import OpenAI
-import google.generativeai as genai
+from tqdm import tqdm
 
-# -----------------------------
-# Configuration
-# -----------------------------
-NUM_PROBLEMS = 10
-PROMPTS_DIR = Path("../data/exported_prompts")
-OUTPUT_DIR  = Path("../generated_code")
+# === Import LLM SDKs ===
+from openai import OpenAI                # GPT
+import google.generativeai as genai      # Gemini
 
-# LLM Clients
-openai_client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# === Configure API keys ===
+openai_key = os.getenv("OPENAI_API_KEY")
+gemini_key = os.getenv("GEMINI_API_KEY")
 
-# For Gemini: uses Google Cloud credentials / API key via environment
-genai_client = genai.Client()
+if not openai_key:
+    raise ValueError("❌ Missing OPENAI_API_KEY. Run: export OPENAI_API_KEY='your_key'")
+if not gemini_key:
+    raise ValueError("❌ Missing GEMINI_API_KEY. Run: export GEMINI_API_KEY='your_key'")
 
-# Models
-LLM1_NAME = "gpt-4"
-LLM2_NAME = "gemini-2.5-flash"  # You can pick the version you have access to
+# OpenAI client
+openai_client = OpenAI(api_key=openai_key)
 
-# Prompt templates
-COT_TEMPLATE       = Path("../prompts/cot_prompt.txt").read_text()
-SELFDEBUG_TEMPLATE = Path("../prompts/selfdebug_prompt.txt").read_text()
+# Gemini configuration
+genai.configure(api_key=gemini_key)
 
-# -----------------------------
-# Helper Functions
-# -----------------------------
-def read_prompt_file(problem_path: Path):
-    with open(problem_path, "r") as f:
-        return f.read()
+# === I/O paths ===
+DATA_DIR = Path("data/generated")
+DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-def save_generated_code(problem_id, model_name, strategy, code):
-    folder = OUTPUT_DIR / f"{model_name}_{strategy}"
-    folder.mkdir(parents=True, exist_ok=True)
-    file_path = folder / f"problem_{problem_id}.py"
-    with open(file_path, "w") as f:
-        f.write(code)
-    print(f"✅ Saved: {file_path}")
+PROBLEMS_PATH = Path("data/humaneval_10.jsonl")  # Make sure this exists
 
-def query_openai(prompt):
+# === Load dataset ===
+def load_problems(path=PROBLEMS_PATH):
+    with open(path) as f:
+        return [json.loads(line) for line in f.readlines()]
+
+problems = load_problems()
+
+# === Helper functions ===
+def call_gpt(prompt, cot=True):
+    """Run GPT model with or without Chain-of-Thought (CoT)."""
+    instruction = "Solve step-by-step before writing the final code." if cot else "Generate only the final code."
     response = openai_client.chat.completions.create(
-        model=LLM1_NAME,
-        messages=[{"role": "user", "content": prompt}],
-        temperature=0.7
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are a Python expert generating function implementations."},
+            {"role": "user", "content": f"{prompt}\n\n{instruction}"}
+        ],
+        temperature=0.2,
     )
     return response.choices[0].message.content.strip()
 
-def query_gemini(prompt):
-    response = genai_client.models.generate_content(
-        model=LLM2_NAME,
-        contents=prompt
-    )
+
+def call_gemini(prompt, cot=True):
+    """Run Gemini model with or without Chain-of-Thought (CoT)."""
+    instruction = "Think step-by-step before writing the final code." if cot else "Generate only the final code."
+    model = genai.GenerativeModel("gemini-1.5-flash")
+    response = model.generate_content(f"{prompt}\n\n{instruction}")
     return response.text.strip()
 
-# -----------------------------
-# Main Generation Loop
-# -----------------------------
-def main():
-    prompt_files = sorted(list(PROMPTS_DIR.glob("problem_*.txt")))[:NUM_PROBLEMS]
-    for i, prompt_file in enumerate(prompt_files, start=1):
-        problem_text = read_prompt_file(prompt_file)
-        print(f"\n=== Problem {i} ===")
 
-        cot_prompt      = COT_TEMPLATE.replace("{{problem_text}}", problem_text)
-        sdebug_prompt   = SELFDEBUG_TEMPLATE.replace("{{problem_text}}", problem_text)
+# === Main generation loop ===
+def generate_all():
+    results = []
+    for i, problem in enumerate(tqdm(problems, desc="Generating code")):
+        prompt = problem["prompt"]
+        task_id = problem.get("task_id", f"problem_{i+1}")
 
-        # OpenAI GPT-4
-        print("Generating GPT-4 CoT …")
-        code = query_openai(cot_prompt)
-        save_generated_code(i, "GPT4", "CoT", code)
+        # --- GPT outputs ---
+        gpt_cot = call_gpt(prompt, cot=True)
+        gpt_selfdebug = call_gpt(prompt, cot=False)
 
-        print("Generating GPT-4 SelfDebug …")
-        code = query_openai(sdebug_prompt)
-        save_generated_code(i, "GPT4", "SelfDebug", code)
+        # --- Gemini outputs ---
+        gemini_cot = call_gemini(prompt, cot=True)
+        gemini_selfdebug = call_gemini(prompt, cot=False)
 
-        # Google Gemini
-        print("Generating Gemini CoT …")
-        code = query_gemini(cot_prompt)
-        save_generated_code(i, "Gemini", "CoT", code)
+        # --- Save results per problem ---
+        entry = {
+            "task_id": task_id,
+            "gpt_cot": gpt_cot,
+            "gpt_selfdebug": gpt_selfdebug,
+            "gemini_cot": gemini_cot,
+            "gemini_selfdebug": gemini_selfdebug,
+        }
 
-        print("Generating Gemini SelfDebug …")
-        code = query_gemini(sdebug_prompt)
-        save_generated_code(i, "Gemini", "SelfDebug", code)
+        results.append(entry)
 
-    print("\n Code generation complete!")
+        # Save incremental file
+        with open(DATA_DIR / f"{task_id}.json", "w") as f:
+            json.dump(entry, f, indent=2)
+
+    # Save all results together
+    with open(DATA_DIR / "all_results.json", "w") as f:
+        json.dump(results, f, indent=2)
+
+    print("✅ Code generation complete! All files saved in data/generated/")
+
 
 if __name__ == "__main__":
-    main()
+    generate_all()
