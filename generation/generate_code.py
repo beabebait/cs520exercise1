@@ -12,9 +12,9 @@ openai_key = os.getenv("OPENAI_API_KEY")
 gemini_key = os.getenv("GEMINI_API_KEY")
 
 if not openai_key:
-    raise ValueError("❌ Missing OPENAI_API_KEY. Run: export OPENAI_API_KEY='your_key'")
+    raise ValueError(" Missing OPENAI_API_KEY. Run: export OPENAI_API_KEY='your_key'")
 if not gemini_key:
-    raise ValueError("❌ Missing GEMINI_API_KEY. Run: export GEMINI_API_KEY='your_key'")
+    raise ValueError(" Missing GEMINI_API_KEY. Run: export GEMINI_API_KEY='your_key'")
 
 # OpenAI client
 openai_client = OpenAI(api_key=openai_key)
@@ -23,21 +23,32 @@ openai_client = OpenAI(api_key=openai_key)
 genai.configure(api_key=gemini_key)
 
 # === I/O paths ===
+EXPORT_FOLDER = Path("data/exported_prompts")
 DATA_DIR = Path("data/generated")
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
-PROBLEMS_PATH = Path("data/humaneval_10.jsonl")  # Make sure this exists
+# === Load prompts from .txt files ===
+def load_prompts_from_txt(folder_path=EXPORT_FOLDER):
+    folder = Path(folder_path)
+    if not folder.exists():
+        raise FileNotFoundError(f"{folder_path} does not exist.")
+    
+    txt_files = sorted(folder.glob("*.txt"))
+    
+    problems = []
+    for i, txt_file in enumerate(txt_files):
+        with open(txt_file, "r") as f:
+            prompt = f.read().strip()
+        problems.append({
+            "task_id": f"problem_{i+1}",
+            "prompt": prompt
+        })
+    return problems
 
-# === Load dataset ===
-def load_problems(path=PROBLEMS_PATH):
-    with open(path) as f:
-        return [json.loads(line) for line in f.readlines()]
-
-problems = load_problems()
+problems = load_prompts_from_txt()
 
 # === Helper functions ===
 def call_gpt(prompt, cot=True):
-    """Run GPT model with or without Chain-of-Thought (CoT)."""
     instruction = "Solve step-by-step before writing the final code." if cot else "Generate only the final code."
     response = openai_client.chat.completions.create(
         model="gpt-4o-mini",
@@ -51,7 +62,6 @@ def call_gpt(prompt, cot=True):
 
 
 def call_gemini(prompt, cot=True):
-    """Run Gemini model with or without Chain-of-Thought (CoT)."""
     instruction = "Think step-by-step before writing the final code." if cot else "Generate only the final code."
     model = genai.GenerativeModel("gemini-1.5-flash")
     response = model.generate_content(f"{prompt}\n\n{instruction}")
@@ -63,7 +73,7 @@ def generate_all():
     results = []
     for i, problem in enumerate(tqdm(problems, desc="Generating code")):
         prompt = problem["prompt"]
-        task_id = problem.get("task_id", f"problem_{i+1}")
+        task_id = problem["task_id"]
 
         # --- GPT outputs ---
         gpt_cot = call_gpt(prompt, cot=True)
@@ -92,7 +102,7 @@ def generate_all():
     with open(DATA_DIR / "all_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
-    print("✅ Code generation complete! All files saved in data/generated/")
+    print("Code generation complete! All files saved in data/generated/")
 
 
 if __name__ == "__main__":
