@@ -99,7 +99,7 @@ def generate_all():
     with open(DATA_DIR / "all_results.json", "w") as f:
         json.dump(results, f, indent=2)
 
-    print("✅ Code generation complete! All files saved in data/generated/")
+    print("Code generation complete! All files saved in data/generated/")
 
 
 if __name__ == "__main__":
