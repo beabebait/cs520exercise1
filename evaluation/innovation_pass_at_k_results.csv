@@ -1,0 +1,3 @@
+Model_Strategy,pass@10 (%),Example Failures
+gpt_rcotd,0.0,"problem_1, problem_10"
+qwen_rcotd,0.0,"problem_1, problem_10"
