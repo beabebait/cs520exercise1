@@ -1,0 +1,7 @@
+{
+  "task_id": "problem_7",
+  "gemini_draft": "API error",
+  "gemini_refined": "API error",
+  "qwen_draft": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimiter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimiter)\n        result.append(num)\n    return result\n```",
+  "qwen_refined": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimiter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimiter)\n        result.append(num)\n    return result\n```"
+}

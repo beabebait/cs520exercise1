@@ -1,0 +1,7 @@
+{
+  "task_id": "problem_5",
+  "gemini_draft": "API error",
+  "gemini_refined": "API error",
+  "qwen_draft": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n```",
+  "qwen_refined": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n```"
+}

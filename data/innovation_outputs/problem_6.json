@@ -1,0 +1,7 @@
+{
+  "task_id": "problem_6",
+  "gemini_draft": "API error",
+  "gemini_refined": "API error",
+  "qwen_draft": "from typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    return sum(abs(num - mean) for num in numbers) / len(numbers)",
+  "qwen_refined": "from typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    return sum(abs(num - mean) for num in numbers) / len(numbers)"
+}

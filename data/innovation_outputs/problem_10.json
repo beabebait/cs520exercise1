@@ -1,0 +1,7 @@
+{
+  "task_id": "problem_10",
+  "gemini_draft": "API error",
+  "gemini_refined": "API error",
+  "qwen_draft": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    sum_result = sum(numbers)\n    product_result = 1\n    for num in numbers:\n        product_result *= num\n    return (sum_result, product_result)\n```",
+  "qwen_refined": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    sum_result = sum(numbers)\n    product_result = 1\n    for num in numbers:\n        product_result *= num\n    return (sum_result, product_result)\n```"
+}

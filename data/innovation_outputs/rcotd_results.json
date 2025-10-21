@@ -1,0 +1,72 @@
+[
+  {
+    "task_id": "problem_1",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "def has_close_elements(numbers: List[float], threshold: float) -> bool:\n    if len(numbers) < 2:\n        return False\n    numbers.sort()\n    for i in range(len(numbers) - 1):\n        if numbers[i+1] - numbers[i] < threshold:\n            return True\n    return False",
+    "qwen_refined": "def has_close_elements(numbers: List[float], threshold: float) -> bool:\n    if len(numbers) < 2:\n        return False\n    numbers.sort()\n    for i in range(len(numbers) - 1):\n        if numbers[i+1] - numbers[i] <= threshold:\n            return True\n    return False"
+  },
+  {
+    "task_id": "problem_2",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "def rolling_max(numbers: List[int]) -> List[int]:\n    if not numbers:\n        return []\n    result = []\n    current_max = numbers[0]\n    result.append(current_max)\n    for num in numbers[1:]:\n        if num > current_max:\n            current_max = num\n        result.append(current_max)\n    return result",
+    "qwen_refined": "def rolling_max(numbers: List[int]) -> List[int]:\n    if not numbers:\n        return []\n    result = []\n    current_max = numbers[0]\n    result.append(current_max)\n    for num in numbers[1:]:\n        if num > current_max:\n            current_max = num\n        result.append(current_max)\n    return result"
+  },
+  {
+    "task_id": "problem_3",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "from typing import List\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    processed = paren_string.replace(' ', '')\n    groups = []\n    current_group = []\n    balance = 0\n    for char in processed:\n        current_group.append(char)\n        if char == '(':\n            balance += 1\n        else:\n            balance -= 1\n        if balance == 0:\n            groups.append(''.join(current_group))\n            current_group = []\n    return groups",
+    "qwen_refined": "from typing import List\n\ndef separate_paren_groups(paren_string: str) -> List[str]:\n    processed = paren_string.replace(' ', '')\n    groups = []\n    current_group = []\n    balance = 0\n    for char in processed:\n        current_group.append(char)\n        if char == '(':\n            balance += 1\n        else:\n            balance -= 1\n        if balance == 0:\n            groups.append(''.join(current_group))\n            current_group = []\n    return groups"
+  },
+  {
+    "task_id": "problem_4",
+    "gemini_draft": "def truncate_number(number: float) -> float:\n    \"\"\" Given a positive floating point number, it can be decomposed into\n    and integer part (largest integer smaller than",
+    "gemini_refined": "API error",
+    "qwen_draft": "def truncate_number(number: float) -> float:\n    return number - int(number)",
+    "qwen_refined": "def truncate_number(number: float) -> float:\n    return float(int(number))"
+  },
+  {
+    "task_id": "problem_5",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n```",
+    "qwen_refined": "```python\nfrom typing import List\n\ndef below_zero(operations: List[int]) -> bool:\n    balance = 0\n    for op in operations:\n        balance += op\n        if balance < 0:\n            return True\n    return False\n```"
+  },
+  {
+    "task_id": "problem_6",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "from typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    return sum(abs(num - mean) for num in numbers) / len(numbers)",
+    "qwen_refined": "from typing import List\n\ndef mean_absolute_deviation(numbers: List[float]) -> float:\n    mean = sum(numbers) / len(numbers)\n    return sum(abs(num - mean) for num in numbers) / len(numbers)"
+  },
+  {
+    "task_id": "problem_7",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimiter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimiter)\n        result.append(num)\n    return result\n```",
+    "qwen_refined": "```python\nfrom typing import List\n\ndef intersperse(numbers: List[int], delimiter: int) -> List[int]:\n    if not numbers:\n        return []\n    result = [numbers[0]]\n    for num in numbers[1:]:\n        result.append(delimiter)\n        result.append(num)\n    return result\n```"
+  },
+  {
+    "task_id": "problem_8",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "from typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    groups = paren_string.split()\n    result = []\n    for group in groups:\n        current_depth = 0\n        max_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                if current_depth > max_depth:\n                    max_depth = current_depth\n            elif char == ')':\n                current_depth -= 1\n        result.append(max_depth)\n    return result",
+    "qwen_refined": "from typing import List\n\ndef parse_nested_parens(paren_string: str) -> List[int]:\n    groups = paren_string.split()\n    result = []\n    for group in groups:\n        current_depth = 0\n        max_depth = 0\n        for char in group:\n            if char == '(':\n                current_depth += 1\n                if current_depth > max_depth:\n                    max_depth = current_depth\n            elif char == ')':\n                current_depth -= 1\n        result.append(max_depth)\n    return result"
+  },
+  {
+    "task_id": "problem_9",
+    "gemini_draft": "def filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    \"\"\" Filter an input list of strings only for ones that contain given substring\n    >>> filter_by_substring([], 'a')\n    []\n    >>> filter_by_substring(['abc', 'bacd', 'cde', 'array'], 'a')\n    ['abc', 'bacd', 'array']\n    \"\"\"\n    return [s for s in strings if substring in s]",
+    "gemini_refined": "API error",
+    "qwen_draft": "def filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    return [s for s in strings if substring in s]",
+    "qwen_refined": "def filter_by_substring(strings: List[str], substring: str) -> List[str]:\n    return [s for s in strings if substring in s]"
+  },
+  {
+    "task_id": "problem_10",
+    "gemini_draft": "API error",
+    "gemini_refined": "API error",
+    "qwen_draft": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    sum_result = sum(numbers)\n    product_result = 1\n    for num in numbers:\n        product_result *= num\n    return (sum_result, product_result)\n```",
+    "qwen_refined": "```python\nfrom typing import List, Tuple\n\ndef sum_product(numbers: List[int]) -> Tuple[int, int]:\n    sum_result = sum(numbers)\n    product_result = 1\n    for num in numbers:\n        product_result *= num\n    return (sum_result, product_result)\n```"
+  }
+]

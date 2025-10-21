@@ -1,0 +1,7 @@
+{
+  "task_id": "problem_1",
+  "gemini_draft": "API error",
+  "gemini_refined": "API error",
+  "qwen_draft": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    if len(numbers) < 2:\n        return False\n    sorted_numbers = sorted(numbers)\n    for i in range(len(sorted_numbers) - 1):\n        if sorted_numbers[i+1] - sorted_numbers[i] < threshold:\n            return True\n    return False",
+  "qwen_refined": "from typing import List\n\ndef has_close_elements(numbers: List[float], threshold: float) -> bool:\n    if len(numbers) < 2:\n        return False\n    sorted_numbers = sorted(numbers)\n    for i in range(len(sorted_numbers) - 1):\n        if sorted_numbers[i+1] - sorted_numbers[i] <= threshold:\n            return True\n    return False"
+}
