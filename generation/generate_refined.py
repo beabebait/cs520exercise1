@@ -36,9 +36,9 @@ refined_problems = [
 # === GPT helper ===
 def call_gpt(prompt, cot=True):
     instruction = (
-        "Solve step-by-step before writing the final code. Explain reasoning, edge cases, examples."
+        "You are an expert Python programmer tasked with solving competitive programming problems.Your task: 1. Carefully analyze the problem requirements. 2. Identify potential logical or edge-case errors in the original code. 3. Re-derive the correct algorithm step by step. 4. Write a *fully functional, correct Python solution* that passes all hidden and public tests. ### Requirements - Define all functions exactly as in the starter code. - Match the input/output format expected by the test harness. - Avoid unnecessary prints, explanations, or comments.- Return *only* the code, without markdown formatting or explanations.- The final output must be directly executable Python code."
         if cot
-        else "Generate only the final code with edge cases handled, no reasoning. Ensure the code handles edge cases and passes typical test cases."
+        else "You are an expert Python debugger. Your task: 1. Diagnose the likely cause of the failure. 2. Correct the issue(s) in the code. 3. Return a new *complete, working solution* that passes all tests. ### Requirements - Define all functions exactly as in the starter code. - Produce code that passes the provided and hidden test cases. - Do not include explanations, markdown, or extraneous prints.- Return only the corrected, runnable Python code."
     )
     response = openai.chat.completions.create(
         model="gpt-4o-mini",
@@ -53,9 +53,9 @@ def call_gpt(prompt, cot=True):
 # === Qwen helper via OpenRouter API ===
 def call_qwen(prompt, cot=True):
     instruction = (
-        "Solve step-by-step before writing the final code. Explain reasoning, edge cases, examples."
+        "You are an expert Python programmer tasked with solving competitive programming problems.Your task: 1. Carefully analyze the problem requirements. 2. Identify potential logical or edge-case errors in the original code. 3. Re-derive the correct algorithm step by step. 4. Write a *fully functional, correct Python solution* that passes all hidden and public tests. ### Requirements - Define all functions exactly as in the starter code. - Match the input/output format expected by the test harness. - Avoid unnecessary prints, explanations, or comments.- Return *only* the code, without markdown formatting or explanations.- The final output must be directly executable Python code."
         if cot
-        else "Generate only the final code with edge cases handled, no reasoning. Ensure the code handles edge cases and passes typical test cases."
+        else "You are an expert Python debugger. Your task: 1. Diagnose the likely cause of the failure. 2. Correct the issue(s) in the code. 3. Return a new *complete, working solution* that passes all tests. ### Requirements - Define all functions exactly as in the starter code. - Produce code that passes the provided and hidden test cases. - Do not include explanations, markdown, or extraneous prints.- Return only the corrected, runnable Python code."
     )
     data = {
         "model": "qwen/qwen3-14b:free",  

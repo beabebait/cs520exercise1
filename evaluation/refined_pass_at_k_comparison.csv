@@ -1,0 +1,5 @@
+Model_Strategy,pass@10 (%),Refined pass@10 (%),Example Failures,Example Failures (Refined),Change
+gpt_cot,0.0,100.0,"problem_1, problem_10",None,↑ +100.0
+gpt_selfdebug,0.0,50.0,"problem_1, problem_10",problem_10,↑ +50.0
+qwen_cot,0.0,0.0,"problem_1, problem_10","problem_2, problem_10",No change
+qwen_selfdebug,20.0,0.0,"problem_10, problem_2","problem_2, problem_10",↓ -20.0

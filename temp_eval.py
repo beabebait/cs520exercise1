@@ -1,13 +1,23 @@
-from typing import List, Tuple
+```python
+from typing import List
 
-def sum_product(numbers: List[int]) -> Tuple[int, int]:
-    total_sum = 0
-    total_product = 1
-    for num in numbers:
-        total_sum += num
-        total_product *= num
-    return (total_sum, total_product)
+def filter_by_substring(strings: List[str], substr: str) -> List[str]:
+    return [s for s in strings if substr in s]
+```
 
+**Potential Inaccuracies or Missing Information:**
+
+1. **Handling of `None` Inputs:**  
+   The function does not explicitly handle cases where `strings` is `None` or `substr` is `None`. If `strings` is `None`, the code will raise a `TypeError`. If `substr` is `None`, the code will also raise a `TypeError` when checking `substr in s`.
+
+2. **Case Sensitivity:**  
+   The function is case-sensitive by default. If the problem intended to allow case-insensitive matching (e.g., "Apple" should match "apple"), this is not addressed.
+
+3. **Empty Substring:**  
+   While the function correctly returns all strings when `substr` is an empty string (as `'' in s` is always `True`), this behavior may not align with the user's expectations if they consider an empty substring as invalid or non-matching.
+
+4. **Non-String Elements in `strings`:**  
+   The function assumes all elements in `strings` are strings. If the list contains non-string elements (e.g., integers), the code will raise a `TypeError` during the `substr in s` check.
 
 
 METADATA = {

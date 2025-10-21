@@ -1,0 +1,9 @@
+Problem,Strategy,Original Pass,Refined Pass
+problem_2,gpt_cot,False,True
+problem_2,gpt_selfdebug,False,True
+problem_2,qwen_cot,False,False
+problem_2,qwen_selfdebug,False,False
+problem_10,gpt_cot,False,True
+problem_10,gpt_selfdebug,False,False
+problem_10,qwen_cot,False,False
+problem_10,qwen_selfdebug,False,False
